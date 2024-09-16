@@ -29,7 +29,43 @@ db.connect().catch((err) => {
 app.use(cors());
 app.use(express.json());
 
-app.get("/", (req, res) => {
-  res.send("Hi");
-  console.log(PSQL_port);
+// Serve the static files from the React app
+app.use(express.static(path.join(__dirname, "client/build")));
+
+// Handle React routing, return all requests to the React app
+app.get("*", (req, res) => {
+  res.sendFile(path.join(__dirname, "client/build", "index.html"));
+});
+
+app.get("/", async (req, res) => {
+  try {
+    const result = await db.query("SELECT * FROM tenant_ledger");
+    console.log(result.rows);
+    res.send(result.rows);
+  } catch (err) {
+    res.send("failed");
+  }
+});
+
+app.post("/api/login", async (req, res) => {
+  const { username, password } = req.body;
+
+  // Validate the credentials (this is just an example, you'll need to implement real validation)
+  const user = await User.findOne({ where: { username } });
+
+  if (!user || !(await bcrypt.compare(password, user.password))) {
+    return res
+      .status(401)
+      .json({ success: false, message: "Invalid credentials" });
+  }
+
+  // Generate a JWT or session token if using one
+  const token = generateJWT(user); // You'll need to implement token generation
+
+  // Send success response with token
+  res.json({ success: true, token });
+});
+
+app.listen(port, () => {
+  console.log(`Server listening on http://localhost:${port}`);
 });
