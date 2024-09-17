@@ -1,0 +1,16 @@
+.userAuth {
+  margin: 10px;
+  text-align: center;
+}
+
+.userAuth h1 {
+  margin: 0 auto;
+  font-size: 40px;
+}
+
+.userAuth form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}

@@ -30,7 +30,7 @@ function Login() {
   }
 
   return (
-    <main>
+    <section id="loginSection" className="userAuth">
       <h1>Login</h1>
       <p
         ref={errRef}
@@ -83,7 +83,7 @@ function Login() {
         <button type="submit" onClick={handleLogin}>SUBMIT</button>
       </form> */}
       <a href="#/user/register">Register Account!</a>
-    </main>
+    </section>
   );
 }
 

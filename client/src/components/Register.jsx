@@ -1,13 +1,20 @@
 import React, { useState, useRef, useEffect } from "react";
 import axios from "axios";
-import { useNavigate } from "react-router-dom";
 import ErrorIcon from "@mui/icons-material/Error";
+import CheckIcon from "@mui/icons-material/Check";
+import ClearIcon from "@mui/icons-material/Clear";
 
 const user_Regex = /^[a-zA-Z][a-zA-Z0-9-_]{3,23}$/;
-const pwd_Regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%]).{8,24}$/;
+const pwd_Regex = /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%_-]).{8,24}$/;
+
+// styles
+const focus_STYLE = {
+  outline: "none",
+  boxShadow: "0 0 5px #66afe9",
+  borderColor: "#66afe9",
+};
 
 function Register() {
-  const navigate = useNavigate();
   const userRef = useRef();
   const errRef = useRef();
 
@@ -25,12 +32,6 @@ function Register() {
 
   const [errMsg, setErrMsg] = useState("");
   const [success, setSuccess] = useState(false);
-
-  const focus_STYLE = {
-    outline: "none",
-    boxShadow: "0 0 5px #66afe9",
-    borderColor: "#66afe9",
-  };
 
   useEffect(() => {
     userRef.current.focus();
@@ -52,7 +53,11 @@ function Register() {
     setValidPwd(result);
 
     const match = pwd === matchPwd;
-    setValidMatch(match);
+    if (pwd === "" && matchPwd === "") {
+      setValidMatch(false);
+    } else {
+      setValidMatch(match);
+    }
   }, [pwd, matchPwd]);
 
   //err msg reset
@@ -60,95 +65,165 @@ function Register() {
     setErrMsg("");
   }, [user, pwd, matchPwd]);
 
+  // Submit form
+  async function handleSubmit(e) {
+    e.preventDefault();
+
+    const v1 = user_Regex.test(user);
+    const v2 = pwd_Regex.test(pwd);
+    if (!v1 || !v2) {
+      setErrMsg("Invalid Entry");
+      return;
+    }
+
+    setSuccess(true);
+  }
+
   return (
     <>
-      <section id="registerPage">
-        <div>
+      <section id="registerSection" className="userAuth">
+        <p
+          ref={errRef}
+          className={errMsg ? "err" : "hide"}
+          aria-live="assertive"
+        >
+          {errMsg}
+        </p>
+        <h1>Register Landlord</h1>
+        <form onSubmit={handleSubmit}>
+          {/* Username */}
+          <label htmlFor="username">
+            Username:
+            <span className={validName ? "valid" : "hide"}>
+              <CheckIcon style={{ color: "rgb(122 221 0)" }} />
+            </span>
+            <span className={validName || !user ? "hide" : "invalid"}>
+              <ClearIcon style={{ color: "red" }} />
+            </span>
+          </label>
+          <input
+            style={userFocus ? focus_STYLE : null}
+            type="text"
+            id="username"
+            ref={userRef}
+            autoComplete="off"
+            onChange={(e) => {
+              setUser(e.target.value);
+            }}
+            required
+            aria-invalid={validName ? "false" : "true"}
+            aria-describedby="uidnote"
+            onFocus={() => {
+              setUserFocus(true);
+            }}
+            onBlur={() => {
+              setUserFocus(false);
+            }}
+          />
           <p
-            ref={errRef}
-            className={errMsg ? "err-msg" : "hide-msg"}
-            aria-live="assertive"
+            id="uidnote"
+            className={
+              userFocus && user && !validName ? "instructions" : "hide"
+            }
           >
-            {errMsg}
+            <ErrorIcon />
+            4 - 24 characters. <br /> Must begin with a letter. <br />
+            Letters, Numbers, Underscores, Hyphens Allowed
           </p>
-          <h1>Register Landlord</h1>
-          <form>
-            <label htmlFor="username">Username:</label>
-            <input
-              type="text"
-              id="username"
-              ref={userRef}
-              autoComplete="off"
-              onChange={(e) => {
-                setUser(e.target.value);
-              }}
-              required
-              aria-invalid={validName ? "false" : "true"}
-              aria-describedby="uidnote"
-              onFocus={() => {
-                setUserFocus(true);
-              }}
-              onBlur={() => {
-                setUserFocus(false);
-              }}
-            />
-            <p
-              id="uidnote"
-              className={
-                userFocus && user && !validName ? "instructions" : "hide-msg"
-              }
-            >
-              <ErrorIcon />
-              4 - 24 characters. <br /> Must begin with a letter. <br />
-              Letters, Numbers, Underscores, Hyphens Allowed
-            </p>
 
-            <label htmlFor="pwd">Password:</label>
-            <input
-              type="password"
-              id="pwd"
-              ref={userRef}
-              autoComplete="off"
-              onChange={(e) => {
-                setPwd(e.target.value);
-              }}
-              required
-              aria-invalid={validPwd ? "false" : "true"}
-              aria-describedby="uidnote"
-              onFocus={() => {
-                setPwdFocus(true);
-              }}
-              onBlur={() => {
-                setPwdFocus(false);
-              }}
-            />
+          {/* Password */}
+          <label htmlFor="password">
+            Password:
+            <span className={validPwd ? "valid" : "hide"}>
+              <CheckIcon style={{ color: "rgb(122 221 0)" }} />
+            </span>
+            <span className={validPwd || !pwd ? "hide" : "invalid"}>
+              <ClearIcon style={{ color: "red" }} />
+            </span>
+          </label>
+          <input
+            style={pwdFocus ? focus_STYLE : null}
+            type="password"
+            id="password"
+            onChange={(e) => {
+              setPwd(e.target.value);
+            }}
+            required
+            aria-invalid={validPwd ? "false" : "true"}
+            aria-describedby="pwdnote"
+            onFocus={() => {
+              setPwdFocus(true);
+            }}
+            onBlur={() => {
+              setPwdFocus(false);
+            }}
+          />
+          <p
+            id="pwdnote"
+            className={pwdFocus && !validPwd ? "instructions" : "hide"}
+          >
+            <ErrorIcon />
+            8 to 24 characters <br /> Must include <strong>
+              Uppercase
+            </strong>{" "}
+            and <strong>Lowercase</strong> letters, a <strong>Number</strong>{" "}
+            and a <strong>Special Character</strong>. <br />
+            Allowed special characters:{" "}
+            <strong>
+              <span aria-label="exclamation mark">!</span>{" "}
+              <span aria-label="at symbol">@</span>{" "}
+              <span aria-label="hashtag">#</span>{" "}
+              <span aria-label="dollar sign">$</span>{" "}
+              <span aria-label="precent">%</span>{" "}
+              <span aria-label="hyphen">-</span>{" "}
+              <span aria-label="underscore">_</span>
+            </strong>
+          </p>
 
-            <label htmlFor="matchPwd">Confirm Password:</label>
-            <input
-              type="password"
-              id="matchPwd"
-              ref={userRef}
-              autoComplete="off"
-              onChange={(e) => {
-                setMatchPwd(e.target.value);
-              }}
-              required
-              aria-invalid={validMatch ? "false" : "true"}
-              aria-describedby="uidnote"
-              onFocus={() => {
-                setMatchPwdFocus(true);
-              }}
-              onBlur={() => {
-                setMatchPwdFocus(false);
-              }}
-            />
+          {/* Confirm Password */}
+          <label htmlFor="confirm_password">
+            Confirm Password:
+            <span className={validMatch && matchPwd ? "valid" : "hide"}>
+              <CheckIcon style={{ color: "rgb(122 221 0)" }} />
+            </span>
+            <span className={validMatch || !matchPwd ? "hide" : "invalid"}>
+              <ClearIcon style={{ color: "red" }} />
+            </span>
+          </label>
+          <input
+            style={matchPwdFocus ? focus_STYLE : null}
+            type="password"
+            id="confirm_password"
+            onChange={(e) => {
+              setMatchPwd(e.target.value);
+            }}
+            required
+            aria-invalid={validMatch ? "false" : "true"}
+            aria-describedby="confirmnote"
+            onFocus={() => {
+              setMatchPwdFocus(true);
+            }}
+            onBlur={() => {
+              setMatchPwdFocus(false);
+            }}
+          />
+          <p
+            id="confirmnote"
+            className={matchPwdFocus && !validMatch ? "instructions" : "hide"}
+          >
+            <ErrorIcon /> Must match password input field!
+          </p>
 
-            <button type="submit">SUBMIT</button>
-          </form>
-          <a id="loginToAccount" href="#/user/login">
-            Already have an account!
-          </a>
-        </div>
+          <button
+            disabled={!validName || !validPwd || !validMatch ? true : false}
+          >
+            Sign Up
+          </button>
+        </form>
+        <p>
+          Already have an account! <br />
+          <a href="#/user/login">Sign In</a>
+        </p>
       </section>
     </>
   );
