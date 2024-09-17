@@ -1,5 +1,6 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import BasicTable from "../components/BasicTable";
+import { useParams } from "react-router-dom";
 
 function TenantPage() {
   const [tenantDetails, setTenantDetails] = useState({
