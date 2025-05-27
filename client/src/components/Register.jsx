@@ -45,7 +45,6 @@ function Register() {
   //username validation
   useEffect(() => {
     const result = user_Regex.test(user);
-    console.log("Valid username: " + result);
     console.log(user);
     setValidName(result);
   }, [user]);
@@ -53,7 +52,6 @@ function Register() {
   //email validation
   useEffect(() => {
     const result = email_Regex.test(email);
-    console.log("Valid email: " + result);
     console.log(email);
     setValidEmail(result);
   }, [email]);
@@ -61,7 +59,6 @@ function Register() {
   //password validation
   useEffect(() => {
     const result = pwd_Regex.test(pwd);
-    console.log("Valid password: " + result);
     console.log(pwd);
     setValidPwd(result);
 
@@ -77,6 +74,12 @@ function Register() {
   useEffect(() => {
     setErrMsg("");
   }, [user, pwd, matchPwd]);
+  //on err msg: focus message
+  useEffect(() => {
+    if (errMsg) {
+      errRef.current.focus();
+    }
+  }, [errMsg]);
 
   // Submit Form
   async function handleSubmit(e) {
@@ -85,6 +88,23 @@ function Register() {
     const v1 = user_Regex.test(user);
     const v2 = email_Regex.test(email);
     const v3 = pwd_Regex.test(pwd);
+
+    try {
+      const response = await axios.get(
+        "http://localhost:5000/api/checkEmail",
+        email
+      );
+
+      if (response.data.emailExists) {
+        setErrMsg("Email already registered");
+        errRef.current.focus();
+        return;
+      }
+      console.log(response.data);
+    } catch (err) {
+      console.log(err.message);
+    }
+
     if (!v1) {
       setErrMsg(
         "Invalid username. Must be 4-24 characters long and start with a letter."
@@ -109,9 +129,11 @@ function Register() {
 
     if (pwd !== matchPwd) {
       setErrMsg("Passwords do not match.");
-      errRef.current.focus();
+
       return;
     }
+
+    //console.log(user, email, pwd);
 
     setSuccess(true);
   }
@@ -241,7 +263,7 @@ function Register() {
             />
             <p
               id="pwdnote"
-              className={pwdFocus && !validPwd ? "instructions" : "hide"}
+              className={pwdFocus && !validPwd && pwd ? "instructions" : "hide"}
             >
               <ErrorIcon />
               8 to 24 characters <br /> Must include <strong>

@@ -14,6 +14,7 @@ const PSQL_database = process.env.PSQL_database;
 const PSQL_password = process.env.PSQL_password;
 const PSQL_port = parseInt(process.env.PSQL_port, 10);
 
+
 const db = new pg.Client({
   user: PSQL_user,
   host: PSQL_host,
@@ -21,26 +22,27 @@ const db = new pg.Client({
   password: PSQL_password,
   port: PSQL_port,
 });
-db.connect().catch((err) => {
-  console.error("Failed to connect to the database:", err.stack);
-  process.exit(1);
-});
+db.connect()
+  .then(() => {
+    console.log("Connected to PostgreSQL database");
+    return db.query("SELECT NOW()");
+  })
+  .then((res) => {
+    console.log("Current time:", res.rows[0]);
+  })
+  .catch((err) => {
+    console.error("Failed to connect to the database:", err.stack);
+    process.exit(1);
+  });
 
 app.use(cors());
 app.use(express.json());
-
-// Serve the static files from the React app
-app.use(express.static(path.join(__dirname, "client/build")));
-
-// Handle React routing, return all requests to the React app
-app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "client/build", "index.html"));
-});
 
 app.get("/", async (req, res) => {
   try {
     const result = await db.query("SELECT * FROM tenant_ledger");
     console.log(result.rows);
+    console.log(PSQL_password);
     res.send(result.rows);
   } catch (err) {
     res.send("failed");
@@ -64,6 +66,12 @@ app.post("/api/login", async (req, res) => {
 
   // Send success response with token
   res.json({ success: true, token });
+});
+
+app.get("/api/checkEmail", async (req, res) => {
+  const { email } = req.body;
+  console.log(email);
+  res.send(email);
 });
 
 app.listen(port, () => {
